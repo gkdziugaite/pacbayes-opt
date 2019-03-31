@@ -32,14 +32,13 @@ The development of this code was initiated while Gintare Karolina Dziugaite and 
 
 Waseem Gharbieh (Element AI) and Gabriel Arpino (University of Toronto) contributed to improving and testing the code, and helped produce this code release.
 
-## Bibtex
+## BiBTeX
 
-@inproceedings{DR17,
-title={Computing Nonvacuous Generalization Bounds for Deep (Stochastic) Neural Networks 
-with Many More Parameters than Training Data},
-author={Gintare Karolina Dziugaite and Daniel M. Roy },
-year={2017},
-booktitle = "Proceedings of the 33rd Annual Conference on Uncertainty in Artificial Intelligence (UAI)",
-archivePrefix={arXiv},
-eprint = {1703.11008},
-}
+    @inproceedings{DR17,
+            title = {Computing Nonvacuous Generalization Bounds for Deep (Stochastic) Neural Networks with Many More Parameters than Training Data},
+           author = {Gintare Karolina Dziugaite and Daniel M. Roy},
+             year = {2017},
+        booktitle = {Proceedings of the 33rd Annual Conference on Uncertainty in Artificial Intelligence (UAI)},
+    archivePrefix = {arXiv},
+           eprint = {1703.11008},
+    }
