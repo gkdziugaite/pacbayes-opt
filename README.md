@@ -23,7 +23,7 @@ The code will throw a `FileExistsError` if a checkpoint already exists. To overw
 
 ### PAC-Bayes Optimization
 
-The following command can be used to run the PAC-Bayes optimization for 1000 epochs on the saved checkpoint. 
+The following command can be used to run the PAC-Bayes optimization for 1000 epochs on the saved checkpoint: 
 
 `python3.5 snn/experiments/run_pacb.py fc --layers 600 --sgd_epochs 20 --pacb_epochs 1000 --lr 0.001 --drop_lr 250 --lr_factor 0.1 --binary`
 
