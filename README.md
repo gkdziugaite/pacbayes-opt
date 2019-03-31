@@ -28,7 +28,7 @@ The following script can be used to run PAC-Bayes optimization for 1000 epochs o
 
 ## Acknowledgments
 
-The development of this code was initiated while Gintare Karolina Dziugaite and Daniel M. Roy were visiting the Simons Institute for the Theory of Computing at UC Berkeley. During this course of this research project, GKD was supported by an EPSRC studentship; DMR was supported by an NSERC Discovery Grant, Connaught Award, and U.S. Air Force Office of Scientific Research grant #FA9550-15-1-0074.
+The development of this code was initiated while [Gintare Karolina Dziugaite](https://gkdz.org) and [Daniel M. Roy](http://danroy.org) were visiting the Simons Institute for the Theory of Computing at U.C. Berkeley. During this course of this research project, GKD was supported by an EPSRC studentship; DMR was supported by an NSERC Discovery Grant, Connaught Award, and U.S. Air Force Office of Scientific Research grant #FA9550-15-1-0074.
 
 Waseem Gharbieh (Element AI) and Gabriel Arpino (University of Toronto) contributed to improving and testing the code, and helped produce this code release.
 
