@@ -40,7 +40,7 @@ class CompleteParser(BasicParser):
         self.parser.add_argument("--lr_factor", help="Factor by which the learning rate is dropped", type=float,
                                  required=False, default=0.05)
         self.parser.add_argument("--trainw", help="Train posterior weights during PAC-Bayes optimization", type=bool,
-                            required=False, default=False)
+                            required=False, default=True)
 
     def get_args(self, args):
         pacb_args = {"pacb_epochs": args.pacb_epochs, "lr": args.lr, "drop_lr": args.drop_lr,
