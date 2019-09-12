@@ -223,7 +223,7 @@ class Network(object):
             yhat, param_var_list = self.model_with_noise(self.x, network_perturb_list, self.scopes_list, self.layers, network_weights, graph=self.graph, trainable=trainWeights)
 
             norm_post_variance = tf.add_n(list(map(lambda x: tf.reduce_sum(tf.exp(x*2)), log_post_std_list)))
-            norm_params = tf.add_n(list(map(lambda x,y: tf.reduce_sum((x-y)**2), param_var_list, prior_weights)))
+            norm_params = tf.add_n(list(map(lambda x,y: tf.reduce_sum((x-y)**2), network_weights, prior_weights)))
             sum_log_post_variance = tf.add_n(list(map(lambda x: tf.reduce_sum(x), log_post_std_list)))
 
             correct_prediction = tf.equal(tf.cast(yhat >= 0, tf.float32) - tf.cast(yhat < 0, tf.float32),
