@@ -439,7 +439,6 @@ class Network(object):
 
             KLdivTimes2 = (norm_post_variance+norm_params)/(tf.exp(2*log_prior_std)) + 2*nparams*log_prior_std - nparams - 2*sum_log_post_variance
             Bquad = KLdivTimes2/2 + tf.log(np.pi**2*effective_m/(6*self.deltaPAC)) \
-                                      + 2*np.log(self.log_prior_std_precision) \
                                       + 2*tf.log(jopt)
             B = tf.sqrt(Bquad/(2*(effective_m-1)))
 
