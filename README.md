@@ -2,51 +2,7 @@
 This is an implementation of the PAC-Bayes generalization bound optimization for stochastic neural networks, as described in the article "[Computing Nonvacuous Generalization Bounds for Deep (Stochastic) Neural Networks with Many More Parameters than Training Data](https://arxiv.org/pdf/1703.11008.pdf)" by Dziugaite and Roy, published in *Uncertainty in AI* (2017).
 
 ## Requirements
-- Python 3.5
-
-absl-py==0.11.0
-
-astor==0.8.1
-
-certifi==2020.6.20
-
-gast==0.4.0
-
-grpcio==1.33.2
-
-h5py==2.10.0
-
-importlib-metadata==2.0.0
-
-Keras==2.2.2
-
-Keras-Applications==1.0.4
-
-Keras-Preprocessing==1.0.2
-
-Markdown==3.2.2
-
-numpy==1.14.5
-
-protobuf==3.14.0
-
-PyYAML==5.3.1
-
-scipy==1.4.1
-
-six==1.15.0
-
-tensorboard==1.10.0
-
-tensorflow==1.10.0
-
-termcolor==1.1.0
-
-Werkzeug==1.0.1
-
-wincertstore==0.2
-
-zipp==1.2.0
+Python 3.5: absl-py==0.11.0, astor==0.8.1, certifi==2020.6.20, gast==0.4.0, grpcio==1.33.2, h5py==2.10.0, importlib-metadata==2.0.0, Keras==2.2.2, Keras-Applications==1.0.4, Keras-Preprocessing==1.0.2, Markdown==3.2.2, numpy==1.14.5, protobuf==3.14.0, PyYAML==5.3.1, scipy==1.4.1, six==1.15.0, tensorboard==1.10.0, tensorflow==1.10.0, termcolor==1.1.0, Werkzeug==1.0.1, wincertstore==0.2, zipp==1.2.0
 
 ## Instructions
 Running the code involves 2 steps:
