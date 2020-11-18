@@ -89,7 +89,9 @@ class Network(object):
         return test_acc
 
     def logistic_loss(self, yhat):
-      return tf.reduce_mean(tf.log(1 + tf.exp(-self.y * yhat)) / (np.float32(np.log(2))))
+        switch = tf.to_float(self.y * yhat < -self.y * yhat)
+        exponent = tf.exp((2 * switch - 1) * self.y * yhat)
+        return tf.reduce_mean(tf.log(1 + exponent) - (switch * self.y * yhat)) / np.float32(np.log(2))
 
     def optimize(self, epochs=10, batch_size=100, learning_rate=0.01, momentum=0.9):
         with self.graph.as_default():
@@ -220,30 +222,31 @@ class Network(object):
             # Gather the initial weights to create a new optimization network
             network_weights, network_perturb_list, log_post_std_list, log_prior_std = self.PACB_init
 
-            yhat, param_var_list = self.model_with_noise(self.x, network_perturb_list, self.scopes_list, self.layers, network_weights, graph=self.graph, trainable=trainWeights)
+            self.yhat, param_var_list = self.model_with_noise(self.x, network_perturb_list, self.scopes_list, self.layers, network_weights, graph=self.graph, trainable=trainWeights)
 
             norm_post_variance = tf.add_n(list(map(lambda x: tf.reduce_sum(tf.exp(x*2)), log_post_std_list)))
             norm_params = tf.add_n(list(map(lambda x,y: tf.reduce_sum((x-y)**2), network_weights, prior_weights)))
             sum_log_post_variance = tf.add_n(list(map(lambda x: tf.reduce_sum(x), log_post_std_list)))
 
-            correct_prediction = tf.equal(tf.cast(yhat >= 0, tf.float32) - tf.cast(yhat < 0, tf.float32),
+            correct_prediction = tf.equal(tf.cast(self.yhat >= 0, tf.float32) - tf.cast(self.yhat < 0, tf.float32),
                                           self.y)
             self.accuracySUM = tf.reduce_sum(tf.cast(correct_prediction, "float"))
-            A = self.logistic_loss(yhat)
+            A = self.cost_fn
 
             nparams, layer_shapes = self.count_N_params()
             self.layer_shapes = layer_shapes
             self.mean_weights_component = (norm_params)/(tf.exp(2*log_prior_std))
             self.var_weights_component = norm_post_variance/(tf.exp(2*log_prior_std)) - 2*sum_log_post_variance + 2*nparams*log_prior_std
             self.KLdivTimes2 = self.mean_weights_component + self.var_weights_component - nparams
+            factor1 = 2*tf.log(self.log_prior_std_precision)
+            factor2 = 2*tf.log(tf.maximum(tf.log(self.log_prior_std_base) - 2 * log_prior_std, 1e-2))
             Bquad = self.KLdivTimes2/2 + tf.log(np.pi**2 * effective_m/(6*0.05)) \
-                                          + 2*tf.log(self.log_prior_std_precision) \
-                                          + 2*tf.log(tf.log(self.log_prior_std_base) - 2 * log_prior_std)
+                                          + factor1 + factor2
 
             c = Bquad/(2*(effective_m-1))
             self.B = tf.sqrt(c)
             cost = A + self.B
-            return A, cost, Bquad, effective_m, log_prior_std, log_post_std_list
+            return A, cost, Bquad, effective_m, log_prior_std, log_post_std_list, factor1, factor2
 
     def PACB_store(self, save_dict, i, log_prior_std=None, m_w=None, v_w=None, bpac=None, B_val=None, KL_val=None,
                    test_acc=None, train_acc=None, log_post_std_list=None):
@@ -285,7 +288,7 @@ class Network(object):
         """ Optimize the PAC Bayes Bound depending on a prior """
 
         with self.graph.as_default():
-            A, cost, Bquad, effective_m, log_prior_std, log_post_std_list = self.PACB_objective(prior_weights, trainWeights=trainWeights)
+            A, cost, Bquad, effective_m, log_prior_std, log_post_std_list, factor1, factor2 = self.PACB_objective(prior_weights, trainWeights=trainWeights)
             train_step = tf.train.RMSPropOptimizer(learning_rate=learning_rate).minimize(cost)
             train_step_dropped = tf.train.RMSPropOptimizer(learning_rate=lr_factor*learning_rate).minimize(cost)
 
@@ -343,9 +346,9 @@ class Network(object):
                 feed_input = [self.x, self.y] + self.param_noise_list
                 feed_output = [batch_x, batch_y] + noise_list
                 feed_dict_val = {i: d for i, d in zip(feed_input, feed_output)}
-                _, A_i, cost_i, kldiv2_i, B_i, m_w, v_w, _log_prior_std, Bquad_i = self.sess.run(
+                _, A_i, cost_i, kldiv2_i, B_i, m_w, v_w, _log_prior_std, Bquad_i, factor1_i, factor2_i = self.sess.run(
                     [train_step, A, cost, self.KLdivTimes2, self.B, self.mean_weights_component,
-                     self.var_weights_component, log_prior_std, Bquad], feed_dict=feed_dict_val)
+                     self.var_weights_component, log_prior_std, Bquad, factor1, factor2], feed_dict=feed_dict_val)
 
                 # Save at a frequency for every epoch, or at the last run
                 if i%(1 * Nsamples / batch_size)==0 or (i == epochs*int(Nsamples/batch_size) - 1):
@@ -353,7 +356,8 @@ class Network(object):
                     output ="".join("Epoch:" + '%04d' % (epoch+1) + " cost=" + str(cost_i[0]) +
                                     " mean accuracy %.4f" % train_accuracy_stoch + ' KL div:  %.4f' % (kldiv2_i/2) +
                                     ' A term: %.4f' % A_i + ' B term: %.4f' % B_i + ' Bquad: %.4f' % Bquad_i +
-                                    ' log_prior_std: %.4f' % _log_prior_std + ' B PAC: %.4f' % bpac)
+                                    ' log_prior_std: %.4f' % _log_prior_std + ' B PAC: %.4f' % bpac + ' factor1: %.4f' % factor1_i +
+                                    ' factor2: %.4f' % factor2_i)
                     print(output)
                 self.PACB_store(save_dict, i=i, log_prior_std=_log_prior_std, m_w=m_w, v_w=v_w, bpac=bpac,
                                 log_post_std_list=log_post_std_list, KL_val=kldiv2_i / 2) # Store the desired values for saving
@@ -431,9 +435,9 @@ class Network(object):
             for (log_post_std,param_noise) in zip(log_post_std_list,param_noise_list):
                 network_perturb_list.append(tf.multiply(tf.exp(log_post_std), param_noise))
 
-            yhat, _varout = self.model_with_noise(self.x, network_perturb_list, self.scopes_list, self.layers, params_mean_values, graph=self.graph, trainable=False)
+            self.yhat, _varout = self.model_with_noise(self.x, network_perturb_list, self.scopes_list, self.layers, params_mean_values, graph=self.graph, trainable=False)
 
-            correct_prediction = tf.equal(tf.cast(yhat >= 0, tf.float32) - tf.cast(yhat < 0, tf.float32),
+            correct_prediction = tf.equal(tf.cast(self.yhat >= 0, tf.float32) - tf.cast(self.yhat < 0, tf.float32),
                                           self.y)
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
